@@ -11,20 +11,7 @@ library(dplyr)
 library(edgeR)
 library(scater)
 
-# Get sum of raw reads of all cells per sample
-# Input: expression is genes x cells, and 
-# information of sample cells are associated with
-getColGroupSum <- function(x,groupid){
-   ngr = length(groupid)
-   output <- matrix(0,nrow(x),ngr)
-   for (i in c(1:ngr)){
-      tmpsel = which(colnames(x)==groupid[i])
-      output[,i]=rowSums(x[,tmpsel])
-   }
-   colnames(output) = groupid
-   rownames(output) = rownames(x)
-   return(output)
-}
+source("source_fxn4seurat.R")
 
 ## Step 0: setting up working directory
 workFolder = c("scRNA_nodules/Ranalysis_Gencode34/")

@@ -20,7 +20,9 @@ library(RColorBrewer)
 library(ggplot2)
 library(reshape2)  
 library(NMF)
-library(iTALK)     
+library(iTALK)   
+
+source("source_fxn4seurat.R")
 
 # create index of lower triangle (include diagonal) of n x n matrix
 lowerTriInd_wDiag <- function(n) {

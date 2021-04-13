@@ -23,9 +23,13 @@ library(reshape2)
 library(data.table)
 library(knitr)
 
+source("source_fxn4seurat.R")
+
 ## Step 0: setting up working directory
 workFolder = c("scRNA_nodules/Ranalysis_Gencode34/")
 setwd(workFolder)
+
+source("source_fxn4seurat.R")
 
 ## Step 1: load Seurat object of selected cells, e.g. cd45neg cells
 fin1 <- c("GGO_cd45neg_seu.rds") 

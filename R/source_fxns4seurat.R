@@ -2,41 +2,6 @@
 ## Perform enrichment analysis to determine if cluster markers
 ## is enriched by cell type markers
 ## Input: (1) target_seu: seurat object with cluster id, 
-##        (2) fin_4mks: file names of positive cluster markers 
-##             (i.e. output of Seurat FindAllMarkers), 
-##        (3) db_sel: cell markers in data frame of two variables: 
-##              "Symbol" and "cellType"
-## Output: Matrix of enrichment scores: clusterID x cell_types
-## *******************************************************************
-enrichScoreCalc <- function(target_seu,fin_4mks,db_sel){
-
-   tmp_mks <- read.delim(fin_4mks,sep = " ",header=T,
-                 stringsAsFactors=F)
-
-   isDetected <- is.element(db_sel$Symbol,rownames(target_seu))
-   db_sel <- db_sel[isDetected,]
-   clusID_num = table(tmp_mks$cluster)
-   cellTp_num = table(db_sel$cellType)
-   ngtotal = nrow(target_seu)
-   Ftab <- matrix(NA,length(clusID_num),length(cellTp_num))
-   for (i in c(1:nrow(Ftab))){
-      tmpm_c <- tmp_mks$gene[tmp_mks$cluster==names(clusID_num)[i]]
-      for (j in c(1:ncol(Ftab))){
-         tmpm_t <- db_sel$Symbol[db_sel$cellType==names(cellTp_num)[j]]
-         Ftab[i,j] = length(intersect(tmpm_c,tmpm_t))*ngtotal/
-                 clusID_num[i]/cellTp_num[j]        
-       }
-    }
-
-    rownames(Ftab) =names(clusID_num)
-    colnames(Ftab) =names(cellTp_num)
-    Ftab
-}
-
-## *********************************************************************
-## Perform enrichment analysis to determine if cluster markers
-## is enriched by cell type markers
-## Input: (1) target_seu: seurat object with cluster id, 
 ##        (2) mks_tab: positive cluster markers 
 ##             (i.e. output of Seurat FindAllMarkers), 
 ##        (3) db_sel: cell markers in data frame of two variables: 

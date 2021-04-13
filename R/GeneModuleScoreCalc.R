@@ -18,6 +18,8 @@ library(ggplot2)
 library(NMF)
 library(reshape)
 
+source("source_fxn4seurat.R")
+
 ## Step 0: setting up working directory
 workFolder = c("scRNA_nodules/Ranalysis_Gencode34/")
 setwd(workFolder)
