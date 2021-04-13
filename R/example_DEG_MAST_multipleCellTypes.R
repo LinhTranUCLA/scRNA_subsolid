@@ -27,6 +27,8 @@ library(knitr)
 workFolder = c("scRNA_nodules/Ranalysis_Gencode34/")
 setwd(workFolder)
 
+source("source_fxn4seurat.R")
+
 ## Step 1: load Seurat object of selected cells, e.g. cd45neg cells
 fin1 <- c("GGO_cd45neg_seu.rds") 
 cd45neg <-readRDS(fin1)  
