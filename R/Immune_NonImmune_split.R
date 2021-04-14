@@ -150,7 +150,7 @@ allSam.integrated <- AddMetaData(allSam.integrated,tmp,
 saveRDS(allSam.integratedt,file=c("GGO_seuInte_all.rds"))
 
 cd45pos_seurat <- subset(allSam.integrated,idents='immune')
-saveRDS(cd45pos_seurat,file=c("GGO_seuInte_cd45.rds"))
+saveRDS(cd45pos_seurat,file=c("GGO_seuInte_cd45pos.rds"))
 
 cd45neg_seurat <- subset(allSam.integrated,idents='immune',invert=TRUE)
 saveRDS(cd45neg_seurat,file=c("GGO_seuInte_cd45neg.rds"))
