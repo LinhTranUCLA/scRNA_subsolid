@@ -1,4 +1,46 @@
 ## *********************************************************************
+## Import data (filtered_feature_bc_matrix) from cellranger
+## Input is tab delimited text file with four columns: 
+## 1st column lists path to "filtered_feature_bc_matrix",
+## 2nd column lists sample IDs, 
+## 3rd lists abbreviation of sampleIDs (i.e. included in cell barcodes), 
+## 4th column is batch information
+## Example: "fullPath/Case1_Normal/outs/filtered_feature_bc_matrix/" "Case1_Normal" "C1N" "batch1"
+## Note: each input file per batch
+## *********************************************************************
+importCellRangerCntMts <- function(
+   CellRangeInputDirs){
+ 
+   inputList <- as.matrix(read.delim(CellRangeInputDirs,sep="\t",
+      header=F,stringsAsFactors=FALSE))
+    
+   allPaths = inputList[,1]
+   sampID_vec = inputList[,2]
+   sampID_short = inputList[,3]
+   batchInfo    = inputList[,4]
+
+   ## import 10X data and create seurat objects
+   nsamples = length(allPaths)
+   tmp1 <- Read10X(data.dir = allPaths[1])
+   tmp1_seu <- CreateSeuratObject(counts = tmp1,
+                     project = sampID_vec[1])
+
+   allDataRaw = list()
+   for (sample.Idx in c(2:nsamples)){
+      tmp2 <- Read10X(data.dir = allPaths[sample.Idx])
+      tmp2_seu <- CreateSeuratObject(counts = tmp2,
+                     project = sampID_vec[sample.Idx])
+      allDataRaw[[(sample.Idx-1)]] <- tmp2_seu  
+   }
+
+   ## merge samples from same batch together
+   batch_seu <- merge(x=tmp1_seu,y=unlist(allDataRaw),
+              add.cell.ids=sampID_short,
+              project=batchInfo[1])
+   return(batch_seu)
+}
+
+## *********************************************************************
 ## Perform enrichment analysis to determine if cluster markers
 ## is enriched by cell type markers
 ## Input: (1) target_seu: seurat object with cluster id, 
@@ -87,5 +129,69 @@ getExp_CellType_PerSample <- function(target_seu,selCellTypes_info){
    return(Exp_avg)
 }
 
+## ******************************************************************
+## Generate color vector for clusters
+## ******************************************************************
+ggplotColours <- function(n = 6, h = c(0, 360) + 15){
+   if ((diff(h) %% 360) < 1) h[2] <- h[2] - 360/n
+   hcl(h = (seq(h[1], h[2], length = n)), c = 100, l = 65)
+}
 
+## ************************************************************************
+## Calculate Gene Module Score per cell
+## Gene sets will be filtered to obtain the mutual exclusive markers
+## before calulating scores.
+## --> Module score of each cell = mean of z-scores of mutually exclusive 
+## gene expression in the module
+## --> Module score of ech cluster = mean of module scores across cells in
+## the cluster
+## Input files
+## (1) seurat object of selected cells with "histology" in meta-data
+## (2) data frame of (a)Symmbol and (b) cellType
+## Output: list of (1)meta-data of cells and (2) F4zmean of gene modules x cells
+## *************************************************************************
+GeneModuleScoreCalc <- function(target_seu,db_sel){
+   
+   selGSet <- names(table(db_sel$cellType))
 
+   ## Step 1: identify shared genes between expression data and database
+   tmpsel <- is.element(db_sel$Symbol,rownames(target_seu))  #*****
+   g4hm <- db_sel[tmpsel,]
+
+   ## Step 2: get genes exclusively expressed based on database
+   tmp_rep <- table(g4hm[,1])
+   tmp4keep <- names(tmp_rep)[tmp_rep==1]  
+   g4hm <- g4hm[is.element(g4hm[,1],tmp4keep),]
+   gList <- unique(g4hm[,1])
+
+   ## Step 3: z-transform and gene module score calculation
+   ## get expression
+   tmp2 <- t(FetchData(target_seu,vars=gList))  
+
+   ## get cell information
+   tmp4cell=data.frame(cID = droplevels(Idents(target_seu)),
+                    hist = target_seu@meta.data$histology)                 
+   ##tmp4cell$hist = factor(target_seu@meta.data$histology,
+   ##              levels=c("Normal","GGO","Tumor"))
+   rownames(tmp4cell) = colnames(tmp2)
+
+   ## reorder cells based on tissue type
+   tmpOrder <- order(tmp4cell$cID,tmp4cell$hist)
+   tmp4cell <- tmp4cell[tmpOrder,]
+   tmp2.n <- tmp2[,tmpOrder]
+
+   ## Cell-based module score calculation: z-mean per pathway in each cell
+   npath = length(selGSet)
+   F4zmean <- matrix(0,npath,ncol(tmp2.n))
+   for (k in c(1:npath)){
+       tmpg = db_sel$Symbol[which(db_sel$cellType==selGSet[k])]
+       tmpi  <- which(is.element(rownames(tmp2.n),tmpg))
+       F4zmean[k,]=colMeans(tmp2.n[tmpi,,drop=FALSE])
+   }
+   colnames(F4zmean)=colnames(tmp2.n)
+   rownames(F4zmean)=selGSet
+   
+   ModuleScoresList <- list(cell_metadata=tmp4cell,scoreMt=F4zmean)
+   return(ModuleScoresList)
+}
+   

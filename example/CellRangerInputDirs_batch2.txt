@@ -1,0 +1,3 @@
+scRNA_GGO/Case2Normal_singlePAR/outs/filtered_feature_bc_matrix	Case2_Normal	C2N	batch2
+scRNA_GGO/Case2GGO_singlePAR/outs/filtered_feature_bc_matrix	Case2_GGO	C2G	batch2
+scRNA_GGO/Case2Tumor_singlePAR/outs/filtered_feature_bc_matrix	Case2_Tumor	C2T	batch2

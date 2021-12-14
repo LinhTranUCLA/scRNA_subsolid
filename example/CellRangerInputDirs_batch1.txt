@@ -1,0 +1,2 @@
+scRNA_GGO/Case1Normal_singlePAR/outs/filtered_feature_bc_matrix	Case1_Normal	C1N	batch1
+scRNA_GGO/Case1GGO_singlePAR/outs/filtered_feature_bc_matrix	Case1_GGO	C1G	batch1
