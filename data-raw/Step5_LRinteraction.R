@@ -60,22 +60,18 @@ getZscore_mean <- function(x,pheno){
    return(zscore_mean)
 }
 
-## Step 0: setting up working directory
-workFolder = c("scRNA_nodules/Ranalysis_Gencode34/")
-setwd(workFolder)
-
 ## Step 1: load Seurat object of selected cells, e.g. cd45neg cells
 fin1 <- c("GGO_cd45neg_seu.rds") 
 cd45neg <-readRDS(fin1)  
 
-fin2 <- c("GGO_cd45neg_selClusters.txt")  #***w/disease status
+fin2 <- c("GGO_cd45neg_selClusters4DEG.txt")  #***w/disease status
 cellAnnotInfo_cd45neg <- read.delim(fin2,sep="\t",header=T,
         stringsAsFactors=FALSE)
 
 fin3 <- c("GGO_cd45pos_seu.rds") 
 cd45neg <-readRDS(fin3)  
 
-fin4 <- c("GGO_cd45pos_selClusters.txt")  #***w/disease status
+fin4 <- c("GGO_cd45pos_selClusters4DEG.txt")  #***w/disease status
 cellAnnotInfo_cd45pos <- read.delim(fin4,sep="\t",header=T,
         stringsAsFactors=FALSE)
 
@@ -88,13 +84,8 @@ degFile_suffix <- c("_mast.txt")
 DefaultAssay(cd45neg) <- 'RNA'
 DefaultAssay(cd45pos) <- 'RNA'
 
-tmpClust = Idents(cd45neg)
-cd45neg <- AddMetaData(cd45neg,
-           metadata=tmpClust,col.name='cd45neg_clustID')
-
-tmpClust = Idents(cd45pos)
-cd45pos <- AddMetaData(cd45pos,
-           metadata=tmpClust,col.name='cd45pos_clustID')
+Idents(cd45neg) <- 'cd45neg_clustID'
+Idents(cd45pos) <- 'cd45pos_clustID'
 
 ## Step 2: average (log) expression per each cell type per sample
 Exp_cd45neg <- getExp_CellType_PerSample(cd45neg,cellAnnotInfo_cd45neg)
@@ -257,7 +248,8 @@ for (pp in c(1:length(list_LRtype))){
    }   
 }
 
-saveRDS(Ftab_sum,"LRInteract_allEdges.rds")
+## Option: save interaction scores
+##saveRDS(Ftab_sum,"LRInteract_allEdges.rds")
 
 ## Step 4: filter out insignificant interactions: 
 ## e.g. (1) LR_score-based pv < 0.05, (2) L and R are not DEGs in releated cell types
